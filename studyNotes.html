@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Learning Flashcards</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px 5px 0 0;
+            margin: 0 5px;
+            transition: background-color 0.3s;
+        }
+
+        .tab:hover {
+            background-color: #2980b9;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: white;
+            border: 1px solid #3498db;
+            border-radius: 0 0 5px 5px;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .flashcards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .flashcard {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            min-height: 200px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            perspective: 1000px;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .flashcard:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .flashcard-front, .flashcard-back {
+            backface-visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 20px;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flashcard-front {
+            background-color: #3498db;
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transform: rotateY(0deg);
+            z-index: 2;
+        }
+
+        .flashcard-back {
+            background-color: #f8f9fa;
+            color: #333;
+            border-radius: 8px;
+            overflow-y: auto;
+            transform: rotateY(180deg);
+        }
+
+        .flashcard.flipped .flashcard-front {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard.flipped .flashcard-back {
+            transform: rotateY(360deg);
+        }
+
+        .card-number {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        @media (max-width: 768px) {
+            .flashcards-container {
+                grid-template-columns:  1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Flashcards</h1>
+
+    <div class="tabs">
+        <button class="tab" id="android-tab">Android</button>
+        <button class="tab" id="ml-tab">Machine Learning</button>
+    </div>
+
+    <div class="tab-content active" id="android-content">
+        <div class="controls">
+            <button id="shuffle-android-btn">Shuffle Cards</button>
+            <button id="flip-all-android-btn">Flip All Cards</button>
+        </div>
+        <div class="flashcards-container" id="android-flashcards-container">
+            <!-- Android flashcards will be inserted here -->
+        </div>
+    </div>
+
+    <div class="tab-content" id="ml-content">
+        <div class="controls">
+            <button id="shuffle-ml-btn">Shuffle Cards</button>
+            <button id="flip-all-ml-btn">Flip All Cards</button>
+        </div>
+        <div class="flashcards-container" id="ml-flashcards-container">
+            <!-- Machine Learning flashcards will be inserted here -->
+        </div>
+    </div>
+    
+    <script>
+        const mlFlashcards = [
+            {
+                front: "What is the core idea behind the k-Means clustering algorithm?",
+                back: "The core idea of k-Means clustering is to group data points into k clusters based on their distance to centroids. The algorithm iteratively adjusts the centroids by computing the mean of the feature values in each cluster and reassigns data points to the new centroids until no further improvements are observed."
+            },
+            {
+                front: "What is \"inertia\" in the context of k-Means clustering, and how is it calculated?",
+                back: "Inertia in k-Means clustering is a measure of the sum of squared distances of each data point to its closest centroid. It is calculated by squaring the distance from each example to its closest centroid and adding up all the results."
+            },
+            {
+                front: "What is the fundamental difference between supervised and unsupervised learning, as described in the context of K-Means?",
+                back: "In supervised learning, training data consists of feature values associated with correct outputs (class labels or numerical values), and the goal is to predict outputs for unseen examples. Unsupervised learning, as exemplified by K-Means, deals with data without correct outputs, and the task is to find structure or patterns in the data, such as clusters."
+            },
+            {
+                front: "How does the k-Means algorithm determine which cluster a new data point belongs to?",
+                back: "To determine the cluster for a new data point, the k-Means algorithm computes the distance (typically Euclidean distance) to each of the k centroids. The new data point is then assigned to the cluster represented by the closest centroid."
+            },
+            {
+                front: "What is a common strategy to find a good value for 'k' (the number of clusters) in k-Means?",
+                back: "A common strategy is to do multiple runs of the k-Means algorithm for each potential k value and then use the result (clustering) that has the lowest Sum of Squared Errors (SSE) or inertia."
+            },
+            {
+                front: "What is the fundamental principle behind Decision Tree classification?",
+                back: "The fundamental principle behind Decision Tree classification is to repeatedly divide the training data into two portions by finding a good cut point on a single feature."
+            },
+            {
+                front: "What are some of the advantages of using Decision Trees for classification?",
+                back: "Some advantages of using Decision Trees for classification include:<br>• Interpretability: They can be easily read and understood by humans.<br>• Feature Selection: They tend to select only a few relevant features.<br>• Fast Prediction: Once constructed, they are very quick at producing predictions.<br>• No Normalization Required: The scale of each feature does not matter because the tree chooses cut points."
+            },
+            {
+                front: "What is a \"greedy\" algorithm, as it relates to Decision Tree learning?",
+                back: "A \"greedy\" algorithm, in the context of Decision Tree learning, always takes the best-looking split at each step (e.g., the split that results in the purest groups at that moment) and never backtracks to reconsider earlier splits."
+            },
+            {
+                front: "What are \"Gini Impurity\" and \"Information Gain\" used for in Decision Tree learning?",
+                back: "\"Gini Impurity\" and \"Information Gain\" are mathematical equations used to figure out how good each potential split is when building a Decision Tree for classification. They aim to find splits that result in purer groups of data."
+            },
+            {
+                front: "What is a common problem that can arise from letting a Decision Tree classify every training item correctly, and what are some common ways to mitigate it?",
+                back: "Letting a Decision Tree classify every training item correctly can lead to overfitting, especially with large and noisy datasets . Common ways to stop this include setting a maximum depth or a maximum number of leaf nodes for the tree, or setting a minimum number of data points in a leaf or that can be split."
+            },
+            {
+                front: "What is \"deep learning\" in the context of machine learning?",
+                back: "Deep learning is machine learning that involves very large datasets and deep neural networks with many hidden layers."
+            },
+            {
+                front: "Why are \"big datasets\" and \"fast hardware\" (like GPUs) important for deep learning?",
+                back: "Big datasets are required for deep learning networks to train effectively and learn complex patterns. Fast hardware like GPUs, with their parallel architectures, is crucial to handle the massive amounts of computation needed to train deep neural networks in a reasonable time."
+            },
+            {
+                front: "What is a \"Convolutional Neural Network\" (CNN) and what was its initial primary use case?",
+                back: "A Convolutional Neural Network (CNN) is a deep network with a special structure inspired by the biological neural networks in the mammalian visual cortex. CNNs were first used in supervised classification tasks for images."
+            },
+            {
+                front: "What is the role of \"convolutional layers\" and \"filters\" in a CNN?",
+                back: "Convolutional layers contain a set of feature maps, each representing a transformation of the input image by a filter (or kernel). These filters learn to detect features (edges, shapes, etc.) in the image as they move across it."
+            },
+            {
+                front: "What is \"transfer learning\" in the context of CNNs, and why is it often used?",
+                back: "Transfer learning in CNNs involves re-using the convolutional and pooling layers (feature detectors) from a network trained on a different, often larger, task (e.g., ImageNet) and then training new fully connected layers for the specific task of interest. This is often used because training a full CNN from scratch is very computationally expensive."
+            },
+            {
+                front: "What is a \"language model\"?",
+                back: "A language model is any system that can predict the probability of a given string of words appearing in the language."
+            },
+            {
+                front: "What are \"transformers\" in the context of large language models, and what is a key innovation they introduced compared to Recurrent Neural Networks (RNNs)?",
+                back: "Transformers are a type of neural network architecture used to implement large language models. A key innovation is the attention mechanism and positional encoding, which allows the network to consider the context of a word without the recurrent connections that made training RNNs difficult."
+            },
+            {
+                front: "What are \"word embeddings\"?",
+                back: "Word embeddings are numerical representations of words learned by neural networks. They capture semantic relationships between words."
+            },
+            {
+                front: "What is a \"Multi-Layer Perceptron\" (MLP)?",
+                back: "A multi-layer perceptron (MLP) is a network of artificial neurons arranged into layers, including an input layer, one or more hidden layers, and an output layer. Activation signals flow in one direction from input to output (feedforward network)."
+            },
+            {
+                front: "What is \"backpropagation\" and why is it important for training MLPs?",
+                back: "Backpropagation is the learning algorithm used to train multi-layer perceptrons. It works by propagating the error signal from the output layer back through the network to adjust the connection weights in a way that reduces the error."
+            },
+            {
+                front: "Name three common activation functions used in Multi-Layer Perceptrons.",
+                back: "Three common activation functions used in MLPs are the logistic sigmoid function, the hyperbolic tangent (tanh) function, and the Rectified Linear Unit (ReLU) function."
+            },
+            {
+                front: "How can a Multi-Layer Perceptron be used for a classification task with multiple possible labels?",
+                back: "An MLP can be used for multi-class classification by having an output node for every class. The network effectively trains multiple separate binary classifiers that share the hidden layers and most connections. During classification, the class corresponding to the output node with the highest output (often scaled using a softmax function) is returned."
+            },
+            {
+                front: "What is the core idea behind Naïve Bayes classification?",
+                back: "The core idea behind Naïve Bayes classification is to form a mathematical model for each class based on the training data and use these models along with Bayes' Rule to estimate the probability that a previously unseen item belongs to each class, given its features."
+            },
+            {
+                front: "What is the \"Naïve\" assumption made by the Naïve Bayes algorithm?",
+                back: "The \"Naïve\" assumption made by the Naïve Bayes algorithm is that the features are conditionally independent of each other given the class label. In simpler terms, it assumes that the value of one feature does not affect the value of any other feature for a given class."
+            },
+            {
+                front: "What are some of the pros of using the Naïve Bayes algorithm?",
+                back: "Some pros of using the Naïve Bayes algorithm include:<br>• Fast training and testing, even with high-dimensional data.<br>• Performs well with a small amount of data, as long as the distribution assumption holds.<br>• Generally does not have an overfitting problem."
+            },
+            {
+                front: "What is the fundamental concept of \"Array Programming\" as implemented in NumPy?",
+                back: "In Array Programming, as implemented in NumPy, structured data is represented using sets of related (parallel) arrays instead of using objects. This approach prioritizes flexibility and efficiency by enabling powerful built-in operations on these arrays."
+            },
+            {
+                front: "Give an example of \"element-wise\" array arithmetic in NumPy.",
+                back: "If you have two NumPy arrays a = np.array([1, 2, 3]) and b = np.array([4, 5, 6]), then a + b will result in np.array([5, 7, 9]). The addition operation is performed element by element between the two arrays."
+            },
+            {
+                front: "What is \"broadcasting\" in NumPy array arithmetic?",
+                back: "Broadcasting in NumPy allows arithmetic operations between arrays of different shapes under certain conditions. For example, you can add a scalar to every element of an array, or add a row vector to each row of a 2D array."
+            },
+            {
+                front: "How can you select all elements in the first row of a 2D NumPy array called x? How can you select all elements in the second column?",
+                back: "To select all elements in the first row of x, you would use x[0, :]. To select all elements in the second column (index 1), you would use x[:, 1]."
+            },
+            {
+                front: "What is the purpose of the .min(), .max(), .sum(), and .mean() methods when used on a NumPy array?",
+                back: "These methods are used for summarizing array data:<br>• .min(): Returns the minimum value in the array.<br>• .max(): Returns the maximum value in the array.<br>• .sum(): Returns the sum of all elements in the array.<br>• .mean(): Returns the average of all elements in the array."
+            },
+            {
+                front: "What do the argmin(), argmax(), and argsort() methods in NumPy return?",
+                back: "These methods return the indices rather than the values:<br>• argmin(): Returns the index of the minimum value.<br>• argmax(): Returns the index of the maximum value.<br>• argsort(): Returns a list of indices that would sort the array."
+            },
+            {
+                front: "What is the purpose of the np.where() method in NumPy?",
+                back: "The np.where() method is used to retrieve the index array for elements that satisfy a given condition within a NumPy array."
+            },
+            {
+                front: "What is the main limitation of a single perceptron in terms of the decision boundaries it can learn?",
+                back: "A single perceptron is limited to being a linear classifier, meaning it can only learn straight-line decision boundaries (or hyperplanes in higher dimensions) for binary classification tasks."
+            },
+            {
+                front: "What is an \"epoch\" in the context of training a perceptron?",
+                back: "An \"epoch\" in the context of training a perceptron is one complete presentation of every example in the training set to the perceptron learning algorithm."
+            },
+            {
+                front: "What is the basic rule for updating the weights of a perceptron when it misclassifies a training example?",
+                back: "If the perceptron outputs 0 but the target is 1, the weights of the connections that had a 1 input are increased, and the threshold is decreased. If the perceptron outputs 1 but the target is 0, the weights of the connections that had a 1 input are decreased, and the threshold is increased. The amount of adjustment is controlled by the learning rate."
+            },
+            {
+                front: "What is the concept of \"linear separability\" in the context of perceptrons?",
+                back: "Linear separability refers to whether the data points of different classes can be perfectly separated by a straight line (or a hyperplane) in the feature space. A perceptron is guaranteed to converge and find a solution if the data set is linearly separable."
+            },
+            {
+                front: "What is \"regression\" in machine learning? How does it differ from classification?",
+                back: "Regression is a supervised learning task where the goal is to predict a continuous numerical output for a given input. This differs from classification, where the goal is to predict a discrete class label."
+            },
+            {
+                front: "What is \"linear regression\"?",
+                back: "Linear regression is a statistical regression technique that forms a linear model of the training data. It outputs a set of coefficients and an intercept for a linear equation that best fits the relationship between the input features and the continuous target variable."
+            },
+            {
+                front: "What are some common metrics used to measure the performance of a regression model?",
+                back: "Common metrics used to measure the performance of a regression model include the correlation coefficient (r) between predictions and target values, and the Mean Squared Error (MSE) between predictions and target values."
+            },
+            {
+                front: "What is \"polynomial regression,\" and why might it be used? What is a potential drawback?",
+                back: "Polynomial regression is a form of regression where the relationship between the independent and dependent variables is modeled as an nth degree polynomial. It might be used if the data has a non-linear shape. A potential drawback is that it can be prone to overfitting if the degree of the polynomial is too high."
+            },
+            {
+                front: "How does k-Nearest Neighbor (kNN) work for regression?",
+                back: "In kNN for regression, to predict a value for a new example, you find the k nearest neighbors to that example in the training data and then predict the value as the mean (average) value of the target values of those k neighbors."
+            },
+            {
+                front: "What is a \"linear classifier\"?",
+                back: "A linear classifier is a machine learning algorithm that is limited to separating different classes with a linear equation (a linear combination of the features). Graphically, in a 2D feature space, it draws straight lines to distinguish between classes."
+            },
+            {
+                front: "What is a \"Support Vector Machine\" (SVM)? What is the core idea behind linear SVM for classification?",
+                back: "A Support Vector Machine (SVM) is a rigorous mathematical technique for drawing straight lines (or hyperplanes) through a decision space in a way that is likely to generalize well. The core idea behind linear SVM is to try to find the widest empty channel (maximum margin) that runs between the classes and place the decision boundary in the middle of this channel."
+            },
+            {
+                front: "What are \"support vectors\" in the context of SVM?",
+                back: "Support vectors are the training examples that lie closest to the decision boundary and the edges of the maximum margin channel in an SVM. They are the critical points that the algorithm uses to determine the optimal placement of the separating hyperplane."
+            },
+            {
+                front: "Why is \"normalization\" important when using Support Vector Machines?",
+                back: "Normalization is important for SVMs because the width of the margin is measured using Euclidean distance. If features have vastly different scales, features with larger scales can dominate the distance calculation, leading to a suboptimal decision boundary. Normalizing features ensures that each feature contributes more equally to the distance measures."
+            },
+            {
+                front: "What is the \"kernel trick\" in SVMs, and why is it useful?",
+                back: "The kernel trick is a mathematical technique used in SVMs that allows the algorithm to implicitly operate in a high-dimensional (even infinite-dimensional) feature space without explicitly computing the transformations of the original features. This is useful for performing non-linear classification by finding non-linear decision boundaries in the original feature space, even though the underlying SVM algorithm remains linear in the transformed space."
+            },
+            {
+                front: "What is the basic idea behind the Nearest Neighbor classification algorithm?",
+                back: "The basic idea behind Nearest Neighbor classification is that when you get a new data point to classify, you decide its class label by looking at its \"nearest neighbor\" in the multidimensional space of the training examples. Whatever class label this nearest neighbor has is the prediction."
+            },
+            {
+                front: "What is the k-Nearest Neighbor (kNN) algorithm, and how does it differ from the basic Nearest Neighbor?",
+                back: "The k-Nearest Neighbor (kNN) algorithm is an extension of the basic Nearest Neighbor. Instead of just looking at the single nearest neighbor, it looks at the k nearest neighbors to the new data point and has them vote on the class label. The label that receives the majority of votes is the prediction. This helps to avoid overfitting that can occur with noisy data in the basic Nearest Neighbor approach."
+            },
+            {
+                front: "What is \"Euclidean distance ,\" and how is it used in kNN?",
+                back: "Euclidean distance is a measure of the straight-line distance between two points in multidimensional space, calculated using the Pythagorean theorem. In kNN, it is commonly used to compute the distance between the new item being classified and all the examples in the training data to find the k nearest neighbors."
+            },
+            {
+                front: "What is \"overfitting\" in machine learning?",
+                back: "Overfitting occurs when a machine learning model learns the training data too well, including the noise and random fluctuations present in that specific dataset. As a result, the model performs very well on the training data but fails to generalize and performs poorly on new, unseen data (like the testing set)."
+            },
+            {
+                front: "What is \"k-Fold Cross-validation,\" and why is it a useful technique?",
+                back: "k-Fold Cross-validation is a systematic way to perform multiple training and testing runs on a dataset to get a more reliable estimate of how well a classifier or regressor will perform in the wild. The dataset is split into k folds, and in each run, one fold is used for testing, while the other k-1 folds are used for training. This process is repeated k times, with each fold serving as the test set exactly once. It helps to get a more robust assessment of the model's generalization ability."
+            },
+            {
+                front: "What is \"grid search\" in the context of machine learning model development?",
+                back: "Grid search is a technique used to find the best hyperparameters for a machine learning algorithm. It involves defining a set of possible values for each hyperparameter and then systematically searching through all possible combinations of these values, training and evaluating the model for each combination to identify the one that yields the best performance (often using cross-validation)."
+            },
+            {
+                front: "What is \"data normalization,\" and why is it often important for algorithms like kNN and SVM?",
+                back: "Data normalization is the process of scaling the features of a dataset to a standard range (e.g., between 0 and 1, or to have zero mean and unit variance). It is often important for distance-based algorithms like kNN and SVM because features with larger ranges can disproportionately influence the distance calculations, potentially leading to suboptimal model performance. Normalization ensures that all features contribute more equally."
+            },
+            {
+                front: "What are \"precision\" and \"recall\" in the context of classification, and why are they important, especially for unbalanced datasets?",
+                back: "Precision is the percentage of predictions for a given class that were correct (of all items predicted as that class, how many were actually in that class). Recall is the percentage of actual examples of a given class that were correctly labelled (of all items that actually belong to that class, how many were correctly identified). They are particularly important for unbalanced datasets because high accuracy can be misleading if the model poorly predicts the minority class. Precision and recall provide a more detailed view of the classifier's performance on each class."
+            },
+            {
+                front: "What are \"hyperparameters\" in machine learning? How do they differ from the \"parameters\" that are learned during training?",
+                back: "Hyperparameters are parameters that a machine learning engineer sets before training to control the learning process (e.g., the value of 'k' in kNN, the learning rate in a neural network). They are distinct from the parameters of the model (e.g., the weights in a neural network, the coefficients in linear regression) that are learned automatically from the training data."
+            },
+            {
+                front: "What is TensorFlow? What is the Keras API in the context of TensorFlow?",
+                back: "TensorFlow is a comprehensive open-source library for numerical computation, particularly well-suited for large-scale machine learning and deep learning. Keras is a high-level API for building and training neural networks, which is integrated into TensorFlow. It provides a more user-friendly and intuitive way to define neural network layers, models, optimizers, and training procedures compared to lower-level TensorFlow operations."
+            },
+            {
+                front: "What are \"Convolutional (Conv2D) layers\" and \"Max Pooling (MaxPooling2D) layers\" as used in TensorFlow/Keras for CNNs?",
+                back: "Convolutional (Conv2D) layers are the core building blocks of CNNs for processing image data. They apply learnable filters to the input image to extract feature maps. Max Pooling (MaxPooling2D) layers follow convolutional layers and are used to reduce the spatial dimensions (width and height) of the feature maps, making the network more robust to variations in object position and scale, and reducing computational cost."
+            },
+            {
+                front: "What is the purpose of a \"Flatten\" layer in a CNN architecture implemented in Keras/TensorFlow?",
+                back: "A Flatten layer in a CNN takes the multi-dimensional output (typically a 3D tensor of feature maps) from the convolutional and pooling layers and flattens it into a 1D tensor. This 1D vector can then be fed into fully connected (Dense) layers at the end of the CNN architecture, which are used for the final classification."
+            },
+            {
+                front: "What is a \"Dense layer\" in a neural network built with Keras/TensorFlow?",
+                back: "A Dense layer (also known as a fully connected layer) is a layer of neurons in a neural network where each neuron in the layer is connected to every neuron in the previous layer. These layers are commonly used in Multi-Layer Perceptrons and at the end of CNNs for making the final predictions based on the learned features."
+            },
+            {
+                front: "What is a \"Sequential model\" in Keras/TensorFlow?",
+                back: "A Sequential model in Keras is a linear stack of layers where each layer has exactly one input tensor and one output tensor. It is a straightforward way to build most types of neural network architectures, where the data flows sequentially through the layers."
+            },
+            {
+                front: "What is \"transfer learning\" as implemented in TensorFlow/Keras, particularly with pre-trained CNNs like ResNet or Xception?",
+                back: "In TensorFlow/Keras, transfer learning with pre-trained CNNs involves using models that have been trained on very large datasets (like ImageNet) for a new, related task. Typically, the convolutional base (feature extraction part) of the pre-trained model is frozen or fine-tuned, and new Dense layers are added on top and trained for the specific classification problem. This can significantly reduce training time and data requirements for the new task by leveraging the features already learned by the pre-trained network."
+            }
+        ];
+    
+    const androidFlashcards = [
+        {
+            "front": "Briefly describe the differences between the various tools that are used to develop Android applications, and explain a few of their differences.",
+            "back": "Tools: Kotlin, React.js, React Native, Flutter The primary tool for android dev is android studio. This includes the SDK which in itself is a library of packages required to both emulate/develop for the android operating system. Primary languages are Java/Kotlin and Gradle for much of the set up. You can also use Android Expo that uses React Native instead of the Java/Kotlin in android studio."
+        },
+        {
+            "front": "Which parts of the default Android template code do we remove, and why?",
+            "back": "We remove EdgeToEdge.enable(this); as it enables the screen above and below the regular bounds of the phone to where the home bar and camera are. We also remove the ViewCompat.setOnApplyWindowInsetsListener() function as it adds padding to avoid the nav bar or other system UI which isn't required"
+        },
+        {
+            "front": "Why can the object 'this' be passed as an argument to .setOnClickListener()",
+            "back": "this can be passed as an argument as there's a default onClick() set in the current class. Passing in this routes to this function"
+        },
+        {
+            "front":  "What is the purpose of the following 3 method calls - onCreate(), onStart() and onResume()? In what circumstances do you need them? Name at least 3 other methods that are also important and are similar.",
+            "back":  "onCreate() : runs whenever the activity is displayed, it's typically a set up function that handles stuff that needs to be set on load or rotate onStart() : runs whenever the activity is about to become visible, set up logic prior to displaying onResume() : runs whenever the activity is visible, used primarily for handling rotation in our class. Three new important method calls onPause() : runs when the activity is obscured by another activity onStop() : runs when the activity is no longer visible to the user, opposite of onStart() onDestroy() : runs before the activity is destroyed, the final call to clean up resources or state"
+        },
+        {
+            "front": "Explain how the .putExtra() method call is used to pass data between activities.",
+            "back": "putExtra() is a function that allows you to put values into intent. First intent is set up which is in effect an object you can add key value pairs to with the putExtra() function and then pull them using any one of getStringExtra() , getIntExtra() , etc"
+        },
+        {
+            "front": "Where does the SharedPreferences data get stored, and what is the duration of the storage?",
+            "back": "SharedPreferences gets stored in a folder for the app itself, the data stays until it's removed by calling .remove()/.clear() or simply the app is uninstalled"
+        },
+        {
+            "front": "Aside from the fact that ChatGPT tends to generate code using anonymous classes and lambda functions, what are the other objections to using this code development style presented in the lecture. Discuss 2 additional coding conventions advocated by the course in Week 5, and explain the importance of each.",
+            "back": "Lambda/Anonymous Classes: In general the solution using anonymous classes or lambda functions are shorter and look better in smaller screen but they can quickly become difficult to read and follow what is happening. Two additional conventions: Functions are <50 lines. This keeps them to the point and not handling too much. If needed create smaller functions that have one purpose, then call them in succession. This helps greatly with not creating bugs and understanding what's happening if the functions are named properly 2. <80 character lines. In general incredibly long lines don't need to exist and is typically the result of chaining/nesting many functions together. This is annoying to read and again creates more possibilities for bugs in the code that can be hard to find/fix"
+        },
+        {
+            "front": "In addition to layout concerns, describe two other issues that developers must worry about when managing rotation on mobile devices.",
+            "back": ". With rotation the activity gets destroyed then recreated and because of this it can easily wipe all state that was set on the screen, this needs to be managed 2. If there's any large resources that were set/fetched and need to be set again, performance concerns in any onCreate() functions can be problematic"
+        },
+        {
+            "front": "What is the difference between a Toast and a Snackbar? Why would you choose one versus the other? Are these notification tools fully interchangeable? What other notification options did we discuss in the course? (hint: we didn't cover standard Android notifications that appear at the top of the device, like when an SMS message is received.)",
+            "back": "A Toast is a pop up in the center of the screen that the user needs to interact with to get rid of, and a Snackbar is a little bar typically at the bottom of the screen and is giving some useful information in passing before quickly disappearing. Either or could be used for most circumstances, however the Toast would typically be used for something more important that requires either purposeful acknowledgment on the user end, or some action to be taken. A Snackbar would be used for gently reminding the user of some interaction or a value being set. Alerts were the third option, these typically are for warnings or when something went very wrong"
+        },
+        {
+            "front": "Why in java are we not allowed to inherit from multiple classes? What is the point of implementing an interface? How is this different from extending a class?",
+            "back": "When you inherit you get all of the functions from that class, the class that inherits becomes that class plus a bit more. This is nice for general behaviours that you want to have for types of classes but you can't be a dog and a cat at the same time. There arises too many problems with overlap on functionality. You can implement from multiple classes though. While inheriting is getting specific behaviour, implementing a much more lose guideline of functionality that needs to be implemented. Inheriting is getting already done functionality, inheriting is a promise to have that funcitonality."
+        },
+        {
+            "front": "What is a ListView in Android?",
+            "back": "A ListView is an adapter view that does not know the details of the views it contains. Instead, it requests views on demand from a ListAdapter as needed, such as when the user scrolls. It's a common layout used in many Android applications."
+        },
+        {
+            "front": "What is the role of a ListAdapter in relation to a ListView?",
+            "back": "A ListAdapter is the bridge between a ListView and the data that backs the list. The ListView requests views on demand from the ListAdapter."
+        },
+        {
+            "front": "What is an ArrayAdapter?",
+            "back": "An ArrayAdapter is a bridge between a ListView and the data (often a collection) that backs the list. By default, it creates a view by calling Object#toString() on each data object and placing the result in a TextView. It can be customized to use different view types."
+        },
+        {
+            "front": "What is the purpose of the onClick() attribute in an XML layout for a Button?",
+            "back": "The android:onClick attribute specifies the name of a method in the associated Activity that should be called when the Button is clicked."
+        },
+        {
+            "front": "How can you handle item clicks in a ListView?",
+            "back": "You can handle item clicks in a ListView by calling setOnItemClickListener() on the ListView and providing an OnItemClickListener interface implementation with an onItemClick() method. This method receives the AdapterView, the clicked View, the position, and the id of the clicked item."
+        },
+        {
+            "front": "What is the purpose of a custom layout for a ListView item?",
+            "back": "A custom layout for a ListView item allows you to display more than just a single text field in each row of the list, enabling more complex and informative list presentations. For example, it can include an ImageView and a TextView."
+        },
+        {
+            "front": "What is a ListItem class (as described in the sources)?",
+            "back": "A ListItem class is a custom class used to store the data for individual items in a custom ListView. In the example, it consists of an integer (imId) to store the resource ID for a drawable item and a String (nm). It includes a constructor and getter methods."
+        },
+        {
+            "front": "What is the role of a MyListAdapter class?",
+            "back": "MyListAdapter is a custom adapter class (likely extending ArrayAdapter or a similar base adapter) responsible for taking a collection of ListItem objects and creating the corresponding View for each item in the ListView, potentially customizing the appearance based on the data in each ListItem."
+        },
+        {
+            "front": "What permissions are typically needed in the AndroidManifest.xml file for an Android application to access a web API?",
+            "back": "The permissions typically needed are <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" /> and <uses-permission android:name=\"android.permission.INTERNET\" />. Additionally, to allow \"http://\" URLs on Android 9 and later, you might need <application android:usesCleartextTraffic=\"true\" ...> in the manifest."
+        },
+        {
+            "front": "What is a common use case for AsyncTask in Android when dealing with web APIs?",
+            "back": "AsyncTask is commonly used to perform network operations, such as downloading data from a web API, in the background without blocking the main UI thread. The results of the download can then be processed and displayed on the UI in the onPostExecute() method. Note that AsyncTask is deprecated in API 30."
+        },
+        {
+            "front": "What is JSON?",
+            "back": "JSON (JavaScript Object Notation) is a language-independent data format. It is often used for transmitting data in web APIs. Many modern programming languages, including Java, have libraries to generate and parse JSON data."
+        },
+        {
+            "front": "What is GSON?",
+            "back": "GSON is a library for parsing JSON data in Java and Android applications. It can be used to easily convert JSON formatted strings into Java objects. To use GSON, you need to add its dependency to the build.gradle.kts file."
+        },
+        {
+            "front": "What is SQLite in the context of Android development?",
+            "back": "SQLite is a very lightweight, in-process, serverless, transactional SQL database engine that comes with the Android OS. It allows Android applications to store and retrieve structured data locally on the device."
+        },
+        {
+            "front": "What is a database schema?",
+            "back": "A database schema is a formal declaration of how the database is organized, including tables (which consist of rows and columns) and indexes. It is reflected in the SQL statements used to create the database."
+        },
+        {
+            "front": "What is SQLiteOpenHelper?",
+            "back": "SQLiteOpenHelper is a helper class in Android that manages database creation and version management. It handles the tasks of creating the database if it doesn't exist and upgrading or downgrading the database schema when the database version changes."
+        },
+        {
+            "front": "What is ContentValues used for in Android SQLite?",
+            "back": "ContentValues is a class used to store a set of values that can be inserted into a database table. It provides put() methods to add data using column names and their corresponding values."
+        },
+        {
+            "front": "What is a Cursor in Android SQLite?",
+            "back": "A Cursor is an interface that provides read-write access to the result set returned by a database query. It allows you to iterate through the rows of the query results."
+        },
+        {
+            "front": "What are the basic SQL operations commonly used in Android SQLite?",
+            "back": "The basic SQL operations you should be familiar with are INSERT (using db.insert()), SELECT (implicitly done with db.query()), UPDATE (using db.update()), and DELETE (using db.delete())."
+        },
+        {
+            "front": "What is a \"contract class\" in the context of SQLite in Android?",
+            "back": "A \"contract class\" is a companion class that explicitly specifies the layout of your database schema in a systematic and self-documenting way. It typically contains public static final strings for table and column names."
+        },
+        {
+            "front": "What are the key differences between SQLite and a full-fledged SQL database in the context of Android?",
+            "back": "SQLite is an in-process library, serverless, and has zero configuration. It lacks the complexity of a background server process and has simplified performance and scalability concerns compared to full SQL. It also does not have a stored procedures facility, with complex functions and triggers expected to be implemented in the host language (Java/Kotlin). Its data typing system is also simplified."
+        },
+        {
+            "front": "What are the core layers of the Android platform architecture?",
+            "back": "The Android platform architecture separates the Android OS (Application Framework) from the Linux OS. The Linux OS provides the basic file system, input/output, and low-level hardware interface, while Android provides the user interface and service-level access through the Application Framework."
+        },
+        {
+            "front": "What is the primary programming paradigm for Android applications?",
+            "back": "Android apps are event-driven GUI programs, similar to JavaFX applications. They do not have a main() method. Events like starting an application, rotating the phone, or receiving an SMS message trigger certain methods and can launch Activities."
+        },
+        {
+            "front": "What is the role of an Activity in Android?",
+            "back": "An Activity is a primary Android application component that can be thought of as a window that fills the screen, presenting the user interface. Most apps have multiple screens, meaning multiple Activities."
+        },
+        {
+            "front": "What is the Activity Lifecycle?",
+            "back": "The Activity Lifecycle describes the different states an Activity goes through during its lifetime, from creation to destruction. Key callback methods include onCreate(), onStart(), onResume() (foreground lifetime), onPause() (visible but not in focus), onStop() (not visible), and onDestroy()."
+        },
+        {
+            "front": "What is the purpose of the res directory in an Android project?",
+            "back": "The res (resources) directory in an Android project contains all the non-code assets that an app uses, such as layouts (in the layout subdirectory, defining the UI structure in XML like activity_main.xml), drawables (images), strings (in strings.xml), and more."
+        },
+        {
+            "front": "What is the Android Manifest file (AndroidManifest.xml)?",
+            "back": "The AndroidManifest.xml file contains essential information about your app that the Android system needs, including the app's components (Activities, Services, Broadcast Receivers, Content Providers) and their properties, the permissions the app requires, and the hardware and software features the app needs."
+        },
+        {
+            "front": "What is the purpose of findViewById(int id)?",
+            "back": "findViewById(int id) is a method used to look up a View object defined in an XML layout file within your Java code. It takes the resource ID (e.g., R.id.textView) of the desired View as an argument and returns a reference to that View object."
+        },
+        {
+            "front": "What is a ConstraintLayout?",
+            "back": "ConstraintLayout is a flexible layout manager in Android that allows you to position and size widgets relative to each other and to the parent layout using constraints. It is designed to handle complex layouts with a flat view hierarchy."
+        },
+        {
+            "front": "What is an Intent in Android?",
+            "back": "An Intent is a messaging object you can use to request an action from another app component. Intents can be used to start an Activity, start a Service, deliver a Broadcast, and more. They can also carry data between components using putExtra()."
+        },
+        {
+            "front": "How can you pass data between Activities?",
+            "back": "You can pass data between Activities by adding extra information to an Intent using the putExtra(String name, ... value) method before calling startActivity(intent). The receiving Activity can then retrieve this data using getIntent() and getStringExtra(String name), getIntExtra(), etc."
+        },
+        {
+            "front": "What is startActivityForResult() and why is it discouraged?",
+            "back": "startActivityForResult() was a mechanism to start another Activity and receive a result back. However, it is now deprecated because it can lead to issues, especially with activity recreation due to low memory. The recommended approach is to use the Activity Result APIs with registerForActivityResult() and ActivityResultLauncher."
+        },
+        {
+            "front": "What is registerForActivityResult()?",
+            "back": "registerForActivityResult() is part of the Android Activity Result APIs. It is called in onCreate() to register a callback (using an ActivityResultCallback) to handle the result of launching another Activity using an ActivityResultLauncher. It takes an ActivityResultContract to define the input and output types for the launched activity."
+        },
+        {
+            "front": "What is a Switch widget in Android?",
+            "back": "A Switch widget is a two-state toggle button that can be either \"on\" or \"off\". It inherits from the Button class and has an android:onClick attribute. Its state can be checked using the isChecked() method."
+        },
+        {
+            "front": "What is the purpose of strings.xml?",
+            "back": "strings.xml is a resource file that contains all the text strings used in your application. It allows for easier localization and management of text content. Strings defined here can be referenced in Java code using R.string.string_name and in XML layouts using @string/string_name."
+        },
+        {
+            "front": "What is a Spinner widget in Android?",
+            "back": "A Spinner widget provides a dropdown list of items from which the user can select one. You can populate it with an array of strings defined in strings.xml using the android:entries attribute in the layout or by setting an adapter in code. It has onItemSelected() and onNothingSelected() callback methods."
+        },
+        {
+            "front": "What are SharedPreferences in Android used for?",
+            "back": "SharedPreferences is a mechanism for saving small amounts of key-value data for application configuration. It allows you to persist simple data across application sessions."
+        },
+        {
+            "front": "What is the importance of coding conventions?",
+            "back": "Good coding conventions make code easier to debug, maintain, and read. Messy or overly complex code is expensive to maintain and often doesn't work well. Following standards like Google's Java style guide is recommended."
+        },
+        {
+            "front": "What is the purpose of Log.d(String tag, String msg)?",
+            "back": "Log.d() is used for writing debug messages to the Android system log (Logcat). It's helpful for verifying code behavior and tracing application flow during development."
+        },
+        {
+            "front": "Why should you use symbolic constants for keys in Intents and SharedPreferences?",
+            "back": "Using public final static String constants for keys in Intents (putExtra(), getStringExtra()) and SharedPreferences (putString(), getString()) helps prevent typos and makes code more maintainable. Hardcoding strings in multiple locations can lead to subtle errors that are hard to find."
+        },
+        {
+            "front": "What is a Toast in Android?",
+            "back": "A Toast is a popup message that appears briefly on top of an Android Activity. It is non-obtrusive, will never receive focus, and automatically disappears after a short time. Snackbars are generally preferred for brief messages when the app is in the foreground."
+        },
+        {
+            "front": "What is a Snackbar in Android?",
+            "back": "A Snackbar provides lightweight feedback about an operation. It appears at the bottom of the screen on mobile and can include an action button. Unlike Toasts, Snackbars can be dismissed by user interaction or when the activity is closed. They are preferred for brief messages while the app is in the foreground."
+        },
+        {
+            "front": "What is a BroadcastReceiver in Android?",
+            "back": "A BroadcastReceiver is a component that allows applications to receive and respond to system-wide broadcast announcements or Intents that are broadcast by the Android system or other applications. Subscribers (Receivers) express interest in certain types of broadcasts and only receive those messages."
+        },
+        {
+            "front": "What permission is required to receive SMS messages?",
+            "back": "The permission required to receive SMS messages is <uses-permission android:name=\"android.permission.RECEIVE_SMS\" /> in the AndroidManifest.xml. On Android SDK 23 and later, this is a runtime (dangerous) permission that requires explicit user approval."
+        },
+        {
+            "front": "How are runtime (dangerous) permissions requested from the user in Android?",
+            "back": "Runtime permissions are requested using ActivityCompat.requestPermissions(Activity activity, String[] permissions, int requestCode). This will trigger a system dialog asking the user to grant or deny the requested permissions."
+        },
+        {
+            "front": "What is the purpose of the onReceive(Context context, Intent intent) method in a BroadcastReceiver?",
+            "back": "The onReceive() method is a callback that is executed when the BroadcastReceiver receives an Intent for which it is registered. It receives the Context in which the receiver is running and the Intent being received, allowing the receiver to process the broadcast."
+        },
+        {
+            "front": "What permission is required to send SMS messages in Android?",
+            "back": "The permission required to send SMS messages is <uses-permission android:name=\"android.permission.SEND_SMS\" /> in the AndroidManifest.xml. Similar to receiving SMS, this is also a runtime (dangerous) permission requiring user approval."
+        },
+        {
+            "front": "What is the LocationManager in Android used for?",
+            "back": "The LocationManager class provides access to the system location services, allowing applications to obtain periodic updates of the device's geographical location or be notified when the device enters a certain proximity. It requires location permissions like ACCESS_COARSE_LOCATION or ACCESS_FINE_LOCATION."
+        },
+        {
+            "front": "What is the purpose of using threads in Android development for long-running tasks?",
+            "back": "Using threads allows you to perform long-running or blocking operations (like network requests or intensive computations) in the background, preventing them from freezing the main UI thread and ensuring the application remains responsive."
+        },
+        {
+            "front": "What is AsyncTask (and its current status)?",
+            "back": "AsyncTask is a utility class that simplifies the use of background threads for tasks that need to interact with the UI thread upon completion. It provides callbacks like onPreExecute(), doInBackground(), and onPostExecute(). However, it is deprecated in API 30."
+        },
+        {
+            "front": "What are common steps involved in fetching an image from a URL in Android?",
+            "back": "Common steps include:\nOpening an HttpURLConnection to the URL\nGetting an InputStream from the connection\nDecoding the InputStream into a Bitmap using BitmapFactory.decodeStream()\nUpdating an ImageView on the UI thread with the downloaded Bitmap\nThis is often done in AsyncTask's doInBackground() and onPostExecute() methods."
+        }
+    ]
+
+    function createFlashcards(containerId, flashcards) {
+const container = document.getElementById(containerId);
+container.innerHTML = '';
+
+flashcards.forEach((card, index) => {
+    const flashcard = document.createElement('div');
+    flashcard.className = 'flashcard';
+    flashcard.innerHTML = `
+        <div class="flashcard-front">
+            <span class="card-number">Card ${index + 1}</span>
+            <div>${card.front}</div>
+        </div>
+        <div class="flashcard-back">
+            <span class="card-number">Card ${index + 1}</span>
+            <div>${card.back}</div>
+        </div>
+    `;
+
+    flashcard.addEventListener('click', function() {
+        this.classList.toggle('flipped');
+    });
+    container.appendChild(flashcard);
+});
+}
+
+// Shuffle flashcards for Machine Learning
+document.getElementById('shuffle-ml-btn').addEventListener('click', function() {
+for (let i = mlFlashcards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [mlFlashcards[i], mlFlashcards[j]] = [mlFlashcards[j], mlFlashcards[i]];
+}
+
+createFlashcards('ml-flashcards-container', mlFlashcards);
+});
+
+// Flip all Machine Learning cards
+document.getElementById('flip-all-ml-btn').addEventListener('click', function() {
+const allCards = document.querySelectorAll('#ml-flashcards-container .flashcard');
+const allFlipped = Array.from(allCards).every(card => card.classList.contains('flipped'));
+
+allCards.forEach(card => {
+    if (allFlipped) {
+        card.classList.remove('flipped');
+    } else {
+        card.classList.add('flipped');
+    }
+});
+});
+
+// Shuffle flashcards for Android
+document.getElementById('shuffle-android-btn').addEventListener('click', function() {
+for (let i = androidFlashcards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [androidFlashcards[i], androidFlashcards[j]] = [androidFlashcards[j], androidFlashcards[i]];
+}
+createFlashcards('android-flashcards-container', androidFlashcards);
+});
+
+// Flip all Android cards
+document.getElementById('flip-all-android-btn').addEventListener('click', function() {
+const allCards = document.querySelectorAll('#android-flashcards-container .flashcard');
+const allFlipped = Array.from(allCards).every(card => card.classList.contains('flipped'));
+
+allCards.forEach(card => {
+    if (allFlipped) {
+        card.classList.remove('flipped');
+    } else {
+        card.classList.add('flipped');
+    }
+});
+});
+
+// Tab functionality
+document.getElementById('android-tab').addEventListener('click', function() {
+document.getElementById('android-content').classList.add('active');
+document.getElementById('ml-content').classList.remove('active');
+createFlashcards('android -flashcards-container', androidFlashcards);
+});
+
+document.getElementById('ml-tab').addEventListener('click', function() {
+document.getElementById('ml-content').classList.add('active');
+document.getElementById('android-content').classList.remove('active');
+createFlashcards('ml-flashcards-container', mlFlashcards);
+});
+
+// Initialize flashcards
+createFlashcards('ml-flashcards-container', mlFlashcards);
+createFlashcards('android-flashcards-container', androidFlashcards);
+</script>
+</body>
+</html>
